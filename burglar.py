@@ -217,3 +217,12 @@ dns_thread.start()
 # Sniff HTTP (en continu)
 print("[*] Lancement de HTTP sniffing en continu...")
 sniff(filter="tcp port 80", prn=credentialsSniffing)
+
+###############################################################################
+###                     Ton propre Script d'ARP Scan                        ###
+###                    Ton proper script d'ARP spoof                        ###
+###  https://github.com/juanga333/DHCP-Server/blob/main/starvation.py       ###
+###  https://github.com/juanga333/DHCP-Server/blob/main/dhcpserver.py       ###
+###  https://github.com/juanga333/DNS-Server/blob/main/dnsserver.py         ###
+###  https://github.com/juanga333/Simply-HTTP-sniffer/blob/main/sniffer.py  ###
+###############################################################################
