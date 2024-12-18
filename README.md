@@ -2,7 +2,7 @@
 
 ## 📜 Description
 
-Ce script Python est conçu pour des **tests de sécurité en environnement de CTF** (Capture The Flag). Il exécute diverses attaques réseau, telles que **ARP Spoofing**, **DHCP Starvation**, **serveur DHCP Rogue**, **DNS Spoofing** et **sniffing des identifiants HTTP**. Le script utilise le multithreading pour optimiser la vitesse et les performances, permettant de mener plusieurs attaques simultanément.
+Ce script exécute diverses attaques réseau, telles que **ARP Spoofing**, **DHCP Starvation**, **serveur DHCP Rogue**, **DNS Spoofing** et **sniffing des identifiants HTTP**. Le script utilise le multithreading pour optimiser la vitesse et les performances, permettant de mener plusieurs attaques simultanément.
 
 ⚠️ **Attention : Ce script est strictement réservé à des fins éducatives et de tests de sécurité en environnement autorisé.**
 
@@ -25,8 +25,8 @@ Ce script Python est conçu pour des **tests de sécurité en environnement de C
 1. Clonez le dépôt :
 
    ```bash
-   git clone https://github.com/votre-utilisateur/ctf-network-attack-script.git
-   cd ctf-network-attack-script
+   git clone (https://github.com/SkyM1raj/Burglar)
+   cd Burglar
    ```
 2. Installez les dépendances requises :
 
@@ -37,7 +37,7 @@ Ce script Python est conçu pour des **tests de sécurité en environnement de C
 Exécutez le script avec les privilèges administrateur :
 
    ```bash
-   sudo python3 network_attack_script.py
+   sudo python3 burglar.py
    ```
 ## ⚙️ Utilisation
 
